@@ -1,2 +1,2 @@
 # django-dock
-Dockercompose for django with postgres database, guicorn and nginx
+Docker-compose for django with postgres database, guicorn and nginx
