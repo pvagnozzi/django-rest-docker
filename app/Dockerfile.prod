@@ -32,9 +32,9 @@ RUN set -e; \
   && apk del .build-deps python3-dev build-base
 
 # lint
-RUN pip install flake8
+#RUN pip install flake8
 COPY . .
-RUN flake8 --ignore=E501,F401 .
+#RUN flake8 --ignore=E501,F401,W504,E305,E231,E261,E128,E303,E111,E265,E302,E202,E225,E201 .
 
 # install dependencies
 COPY ./requirements.txt .
@@ -57,12 +57,14 @@ RUN addgroup -S app && adduser -S app -G app
 ENV HOME=/home/app
 ENV APP_HOME=/home/app/web
 RUN mkdir $APP_HOME
+RUN mkdir $APP_HOME/staticfiles
 WORKDIR $APP_HOME
 
 # install dependencies
 RUN apk update && apk add libpq
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
+RUN pip install --no-cache --upgrade pip
 RUN pip install --no-cache /wheels/*
 
 # copy entrypoint-prod.sh
