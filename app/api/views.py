@@ -6,9 +6,6 @@ from rest_framework import status
 
 # Create your views here.
 
-
-class Peripheral(APIView):
-    def post(self, request, id, format=None):            
-        peripheral_id = id
-        print("Execute " + str(peripheral_id))
+class Test(APIView):
+    def post(self, request, id, format=None):                            
         return Response(status=status.HTTP_200_OK)       

@@ -13,16 +13,22 @@ from rest_framework.authtoken.views import obtain_auth_token
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView 
+)
+
 from api import views
 
 schema_view = get_schema_view(
    openapi.Info(
-      title="SEACloud API",
+      title="API",
       default_version='v1',
       description="Beta",
       terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="pvagnozzi@seateam.com"),
-      license=openapi.License(name="Copyright (c) 2020 by SEATeam"),
+      contact=openapi.Contact(email="piergiorgio.vagnozzi@gmail.com"),
+      license=openapi.License(name="Copyright (c) 2020 by Piergiorgio Vagnozzi"),
       swagger = '2.0'     
    ),
    public=True,
@@ -43,6 +49,10 @@ urlpatterns = [
     # Authentication #
     path('api/', include('rest_framework.urls')),
 
-    path('api/peripheral/', views.Peripheral.as_view()),
-    path('api/peripheral/<int:id>/', views.Peripheral.as_view()),
+    path('api/test/', views.Test.as_view()),
+    path('api/test/<int:id>/', views.Test.as_view()),
+
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 ]
