@@ -1,8 +1,15 @@
+import logging.config
+import os
 from pathlib import Path
 from datetime import timedelta
-import os
+from django.utils.log import DEFAULT_LOGGING
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+#import sentry_sdk
+#from sentry_sdk.integrations.django import DjangoIntegration
+
+########
+# BASE #
+########
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -10,7 +17,9 @@ SECRET_KEY = os.environ.get("SECRET_KEY", default='1234567890')
 DEBUG = int(os.environ.get("DEBUG", default=0))
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost 127.0.0.1 [::1]").split(" ")
 
-# Application definition
+##########################
+# Application definition #
+##########################
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -55,7 +64,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Database
+############
+# Database #
+############
+
 DATABASES = {
     "default": {
         "ENGINE": os.environ.get("SQL_ENGINE", "django.db.backends.sqlite3"),
@@ -67,7 +79,10 @@ DATABASES = {
     }
 }
 
-# Password validation
+#######################
+# Password validation #
+#######################
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -83,7 +98,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Internationalization
+########################
+# Internationalization #
+########################
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
@@ -94,7 +112,10 @@ USE_TZ = True
 STATIC_URL = "/staticfiles/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
+##################
 # REST-FRAMEWORK #
+##################
+
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
     'DEFAULT_PERMISSION_CLASSES': [
@@ -143,3 +164,64 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+#######
+# LOG #
+#######
+
+LOGGING_CONFIG = None
+
+LOGLEVEL = os.environ.get('LOGLEVEL', 'info').upper()
+SENTRY_DSN = os.environ.get('SENTRY_DSN')
+
+logging_handlers_config = {        
+    'console': {
+        'class': 'logging.StreamHandler',
+        'formatter': 'default',
+    },            
+    'django.server': DEFAULT_LOGGING['handlers']['django.server'],
+}   
+logging_handlers = ['console']
+
+if SENTRY_DSN:
+    
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=1.0,
+        send_default_pii=True
+    )
+
+    sentry_handler_config = {'level': 'WARNING','class': 'raven.contrib.django.raven_compat.handlers.SentryHandler' }        
+    logging_handlers_config['sentry'] = sentry_handler_config  
+    logging_handlers.append('sentry')
+
+
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'default': {            
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+        },
+        'django.server': DEFAULT_LOGGING['formatters']['django.server'],
+    },
+    'handlers': logging_handlers_config,
+    'loggers': {        
+        '': {
+            'level': 'WARNING',
+            'handlers': logging_handlers,
+        },        
+        'app': {
+            'level': LOGLEVEL,
+            'handlers': logging_handlers,          
+            'propagate': False,
+        },        
+        'noisy_module': {
+            'level': 'ERROR',
+            'handlers': logging_handlers,
+            'propagate': False,
+        },        
+        'django.server': DEFAULT_LOGGING['loggers']['django.server'],
+    },
+})
